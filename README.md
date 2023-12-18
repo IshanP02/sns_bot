@@ -1,6 +1,7 @@
-#Discord bot for S&S Pokemon Draft League
+# Discord bot for S&S Pokemon Draft League
 
-##Commands:
+## Commands:
+
 /battle-announcement
 
 * Posts a battle announcement for a new live battle
