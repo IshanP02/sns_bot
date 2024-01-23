@@ -34,7 +34,7 @@ module.exports = {
             inline: false,
         });
 
-        const responseData = await axios.get('https://sheetdb.io/api/v1/bhsilqd4lqdy7');
+        const responseData = await axios.get('https://sheetdb.io/api/v1/bhsilqd4lqdy7?sheet=botData');
         const rowData = responseData.data;
         
         const userSubscriptions = rowData.filter(row => row.to === user.username);

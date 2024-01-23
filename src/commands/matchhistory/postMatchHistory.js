@@ -13,6 +13,7 @@ module.exports = {
         var loser = interaction.options.get('loser').value;
         const pokemonAlive = interaction.options.get('pokemon-alive').value;
         const week = interaction.options.get('week').value;
+        const group = interaction.options.get('group').value;
         const user = await client.users.fetch(interaction.member.id);
 
         var victorUser = client.users.cache.get(`${victor}`);
@@ -22,7 +23,7 @@ module.exports = {
         var loser = `<@${loser}>`;
 
         const matchHistory = new EmbedBuilder()
-            .setTitle('Match history post')
+            .setTitle(`${group} Match History`)
             .setDescription(`${user.username}`)
             .setColor('Random')
             .addFields({
@@ -41,12 +42,17 @@ module.exports = {
                 inline: false,
             });
         
-        const matchHistoryChan = client.channels.cache.find(channel => channel.id === process.env.MATCH_HISTORY_ID);
+        if (group == "group1") {
+            const matchHistoryChan = client.channels.cache.find(channel => channel.id === process.env.MATCH_HISTORY_ID_1);
+        }
+        else {
+            const matchHistoryChan = client.channels.cache.find(channel => channel.id === process.env.MATCH_HISTORY_ID_2);
+        }
         matchHistoryChan.send({ 
             embeds: [matchHistory],
         });
 
-        axios.post(`https://sheetdb.io/api/v1/bhsilqd4lqdy7`, {
+        axios.post(`https://sheetdb.io/api/v1/bhsilqd4lqdy7?sheet=botData`, {
             data: {
                 id: 'INCREMENT',
                 replayLink: `${replayLink}`,
@@ -54,6 +60,7 @@ module.exports = {
                 loser: `${loserUser.username}`,
                 pokemonAlive: `${pokemonAlive}`,
                 week: `${week}`,
+                group: `${group}`,
             }
         });
 
@@ -93,6 +100,12 @@ module.exports = {
             description: 'Week the battle took place',
             type: ApplicationCommandOptionType.String,
             required: true,
+        },
+        {
+            name: 'group',
+            description: 'Group the battlers are in',
+            type: ApplicationCommandOptionType.String,
+            required:true,
         },
     ]
 

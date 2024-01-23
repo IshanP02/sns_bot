@@ -12,7 +12,7 @@ module.exports = {
         var user = await client.users.fetch(interaction.member.id);
         var toPost = client.users.cache.get(`${to}`);
 
-        const response = await axios.get(`https://sheetdb.io/api/v1/bhsilqd4lqdy7`);
+        const response = await axios.get(`https://sheetdb.io/api/v1/bhsilqd4lqdy7?sheet=botData`);
 
         const rowData = response.data;
         const rowToDelete = rowData.find(row => row.subscribed === user.username && row.to === toPost.username);
@@ -20,7 +20,7 @@ module.exports = {
         if (rowToDelete) {
             try {
                 const rowIdToDelete = rowToDelete.id;
-                const deleteResponse = await axios.delete(`https://sheetdb.io/api/v1/bhsilqd4lqdy7/id/${rowIdToDelete}`);
+                const deleteResponse = await axios.delete(`https://sheetdb.io/api/v1/bhsilqd4lqdy7/id/${rowIdToDelete}?sheet=botData`);
                 interaction.reply('Unsubscribed successfully.');
             } catch (error) {
                 console.error('Error:', error);

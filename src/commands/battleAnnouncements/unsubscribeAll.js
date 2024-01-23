@@ -10,7 +10,7 @@ module.exports = {
 
         try {
             const user = await client.users.fetch(interaction.member.id);
-            const response = await axios.get('https://sheetdb.io/api/v1/bhsilqd4lqdy7');
+            const response = await axios.get('https://sheetdb.io/api/v1/bhsilqd4lqdy7?sheet=botData');
             const rowData = response.data;
 
             const subscriptionsToDelete = rowData.filter(row => row.subscribed === user.username);
@@ -18,7 +18,7 @@ module.exports = {
             if (subscriptionsToDelete.length > 0) {
                 await Promise.all(subscriptionsToDelete.map(async (subscription) => {
                     try {
-                        const deleteResponse = await axios.delete(`https://sheetdb.io/api/v1/bhsilqd4lqdy7/id/${subscription.id}`);
+                        const deleteResponse = await axios.delete(`https://sheetdb.io/api/v1/bhsilqd4lqdy7/id/${subscription.id}?sheet=botData`);
                     } catch (error) {
                         console.error('Error deleting subscription:', error);
                     }

@@ -93,7 +93,7 @@ module.exports = {
                 content: `Extension granted for: ${user}.`,
                 embeds: [granted],
             });
-            axios.post(`https://sheetdb.io/api/v1/bhsilqd4lqdy7`, {
+            axios.post(`https://sheetdb.io/api/v1/bhsilqd4lqdy7?sheet=botData`, {
                 data: {
                     id: 'INCREMENT',
                     extensionWeek: `${week}`,

@@ -33,7 +33,7 @@ module.exports = {
     
                         const uniqueID = Date.now().toString();
                         if (!subscribedSet.has(uniqueID)) {
-                            const response = await axios.post('https://sheetdb.io/api/v1/bhsilqd4lqdy7', {
+                            const response = await axios.post('https://sheetdb.io/api/v1/bhsilqd4lqdy7?sheet=botData', {
                                 data: {
                                     id: uniqueID,
                                     subscribed: user.username,

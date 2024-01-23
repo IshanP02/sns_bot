@@ -19,7 +19,7 @@ module.exports = {
                 return;
             }
 
-            const response = await axios.post('https://sheetdb.io/api/v1/bhsilqd4lqdy7', {
+            const response = await axios.post('https://sheetdb.io/api/v1/bhsilqd4lqdy7?sheet=botData', {
                 data: {
                     id: 'INCREMENT',
                     subscribed: `${user.username}`,

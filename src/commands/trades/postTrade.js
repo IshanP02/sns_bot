@@ -108,7 +108,7 @@ module.exports = {
                     content: `Trade approved for: ${user}.`,
                     embeds: [FATradeApproved],
                 });
-                axios.post(`https://sheetdb.io/api/v1/bhsilqd4lqdy7`, {
+                axios.post(`https://sheetdb.io/api/v1/bhsilqd4lqdy7?sheet=botData`, {
                     data: {
                         id: 'INCREMENT',
                         user1: `${user.username}`,
