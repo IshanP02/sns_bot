@@ -42,12 +42,11 @@ module.exports = {
                 inline: false,
             });
         
-        if (group == "group1") {
-            const matchHistoryChan = client.channels.cache.find(channel => channel.id === process.env.MATCH_HISTORY_ID_1);
+        var matchHistoryChan = client.channels.cache.find(channel => channel.id === process.env.MATCH_HISTORY_ID_2);
+        if (group == "andromeda" || group == "Andromeda") {
+            matchHistoryChan = client.channels.cache.find(channel => channel.id === process.env.MATCH_HISTORY_ID_1);
         }
-        else {
-            const matchHistoryChan = client.channels.cache.find(channel => channel.id === process.env.MATCH_HISTORY_ID_2);
-        }
+        
         matchHistoryChan.send({ 
             embeds: [matchHistory],
         });

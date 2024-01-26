@@ -19,9 +19,9 @@ module.exports = {
             currentPick = 0;
         }
 
-        //rob, remi, altro, hailie, pocket, harry, rey, ghant, strict, silas, zmc, ishan, shaqtus, starling, will, owen, manatsu, meli, eric, chris
-        const playersById = [ `202241017057902593`, `186820843894996992`, `135927721019572225`, `206519138649243649`, `213125543971913739`, `342973790118215680`, `685992148835106875`, `246024472325259264`, `516456049105174548`, `613161005937328156`, 
-            `87804552895533056`, `125395426948939776`, `227898618110148611`, `93453076534407168`, `201845831215611905`, `271732710651854848`, `226879501697548288`, `186958826145054721`, `220992748260425729`, `282505061513560064` ];
+        //rob, chris, hailie, altro, starling, harry, rey, ghant, strict, silas, zmc, ishan, shaqtus, pocket, will, owen, manatsu, meli, eric, remi
+        const playersById = [ `202241017057902593`, `93453076534407168`, `206519138649243649`, `135927721019572225`, `282505061513560064`, `342973790118215680`, `685992148835106875`, `246024472325259264`, `516456049105174548`, `613161005937328156`, 
+            `87804552895533056`, `125395426948939776`, `227898618110148611`, `213125543971913739`, `201845831215611905`, `271732710651854848`, `226879501697548288`, `186958826145054721`, `220992748260425729`, `186820843894996992` ];
 
         var round = Math.ceil(currentPick / 20);
 
@@ -47,7 +47,13 @@ module.exports = {
             }
         }
 
-        interaction.reply(`Round ${round}: ${user} has picked ${pokemon}! Next pick: <@${nextPlayerId}>`);
+        const draftChan = client.channels.cache.find(channel => channel.id === process.env.DRAFT_CHAN);
+
+        draftChan.send ({
+            content: `Round ${round}: ${user} has picked ${pokemon}! Next pick: <@${nextPlayerId}>`,
+        });
+
+        interaction.reply(`Draft pick sent.`);
 
         axios.post(`https://sheetdb.io/api/v1/bhsilqd4lqdy7?sheet=botData`, {
             data: {

@@ -75,7 +75,7 @@ module.exports = {
 
     },
 
-    name: 'battle-announcement',
+    name: 'live-game',
     description: 'announce your battle',
     options: [
         {
