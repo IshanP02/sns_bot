@@ -26,31 +26,36 @@ module.exports = {
         var round = Math.ceil(currentPick / 20);
 
         var nextPlayerId;
+        var currentPlayerId;
 
         if ( round % 2 !== 1 ) {
             const playersByIdReversed = playersById.reverse();
             const currentPickInRound = currentPick % 20;
             if (currentPickInRound == 0) {
                 nextPlayerId = playersByIdReversed[19];
+                currentPlayerId = playersByIdReversed[19];
             }
             else {
                 nextPlayerId = playersByIdReversed[currentPickInRound - 1];
+                currentPlayerId = playersByIdReversed[currentPickInRound - 2];
             }
         }
         else {
             const currentPickInRound = currentPick % 20;
             if (currentPickInRound == 0) {
                 nextPlayerId = playersById[19];
+                currentPlayerId = playersById[19];
             }
             else {
                 nextPlayerId = playersById[currentPickInRound - 1];
+                currentPlayerId = playersById[currentPickInRound - 2];
             }
         }
 
         const draftChan = client.channels.cache.find(channel => channel.id === process.env.DRAFT_CHAN);
 
         draftChan.send ({
-            content: `Round ${round}: ${user} has picked ${pokemon}! Next pick: <@${nextPlayerId}>`,
+            content: `Round ${round}: ${user} has picked ${pokemon} for <@${currentPlayerId}>! Next pick: <@${nextPlayerId}>`,
         });
 
         interaction.reply(`Draft pick sent.`);
