@@ -35,6 +35,10 @@ module.exports = {
                 nextPlayerId = playersByIdReversed[19];
                 currentPlayerId = playersByIdReversed[19];
             }
+            else if (currentPickInRound == 1) {
+                nextPlayerId = playersByIdReversed[1];
+                currentPlayerId = playersByIdReversed[0];
+            }
             else {
                 nextPlayerId = playersByIdReversed[currentPickInRound - 1];
                 currentPlayerId = playersByIdReversed[currentPickInRound - 2];
@@ -45,6 +49,10 @@ module.exports = {
             if (currentPickInRound == 0) {
                 nextPlayerId = playersById[19];
                 currentPlayerId = playersById[19];
+            }
+            else if (currentPickInRound == 1) {
+                nextPlayerId = playersById[1];
+                currentPlayerId = playersById[0];
             }
             else {
                 nextPlayerId = playersById[currentPickInRound - 1];
