@@ -19,7 +19,7 @@ client.on('ready', (c) => {
     console.log(`${c.user.tag} is online.`);
 
     client.user.setActivity({
-        name: 'S&S Season 8',
+        name: 'some idiots draft Pokemon',
         type: ActivityType.Watching,
     });
 });
