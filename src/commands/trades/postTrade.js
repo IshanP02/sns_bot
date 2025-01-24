@@ -6,7 +6,7 @@ module.exports = {
 
     callback: async (client, interaction) => {
 
-        if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) return interaction.reply({ content: 'You can\'t do that', ephemeral: true });
+        //if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) return interaction.reply({ content: 'You can\'t do that', ephemeral: true });
 
         var otherPlayer = interaction.options.get('other-player')?.value || "";
         const trading = interaction.options.get('trading').value;
@@ -14,12 +14,17 @@ module.exports = {
         const currentWeek = interaction.options.get('current-week').value;
         const user = await client.users.fetch(interaction.member.id);
 
+        const rows = await axios.get(`https://sheetdb.io/api/v1/bhsilqd4lqdy7?sheet=botData`);
+        const rowData = rows.data;
+
+        var tradeId = Math.max.apply(null, rowData.map(item => item.id)) + 1;
+
         if ( otherPlayer == "" ) {
 
             const typeOfTrade = "FA";
 
             const FATrade = new EmbedBuilder()
-            .setTitle('FA Trade')
+            .setTitle(`FA Trade - #${tradeId}`)
             .setDescription(`${user.username}`)
             .setColor('Yellow')
             .addFields({
@@ -38,94 +43,44 @@ module.exports = {
                 inline: true,
             });
 
-            const FATradeApproved = new EmbedBuilder()
-            .setTitle('FA Trade Approved')
-            .setDescription(`${user.username}`)
-            .setColor('Green')
-            .addFields({
-                name: 'Trading',
-                value: `${trading}`,
-                inline: true,
-            })
-            .addFields({
-                name: 'For',
-                value: `${tradingFor}`,
-                inline: true,
-            })
-            .addFields({
-                name: 'Week',
-                value: `${currentWeek}`,
-                inline: true,
-            });
-
-            const FATradeDenied = new EmbedBuilder()
-            .setTitle('FA Trade Denied')
-            .setDescription(`${user.username}`)
-            .setColor('Red')
-            .addFields({
-                name: 'Trading',
-                value: `${trading}`,
-                inline: true,
-            })
-            .addFields({
-                name: 'For',
-                value: `${tradingFor}`,
-                inline: true,
-            })
-            .addFields({
-                name: 'Week',
-                value: `${currentWeek}`,
-                inline: true,
-            });
-
-            const approve = new ButtonBuilder()
-                .setCustomId('approve')
-                .setLabel('Approve')
-                .setStyle(ButtonStyle.Success);
-    
-            const deny = new ButtonBuilder()
-                .setCustomId('deny')
-                .setLabel('Deny')
-                .setStyle(ButtonStyle.Danger);
-
-            const row = new ActionRowBuilder()
-                .addComponents(approve, deny);
+            // const FATradeDenied = new EmbedBuilder()
+            // .setTitle('FA Trade Denied')
+            // .setDescription(`${user.username}`)
+            // .setColor('Red')
+            // .addFields({
+            //     name: 'Trading',
+            //     value: `${trading}`,
+            //     inline: true,
+            // })
+            // .addFields({
+            //     name: 'For',
+            //     value: `${tradingFor}`,
+            //     inline: true,
+            // })
+            // .addFields({
+            //     name: 'Week',
+            //     value: `${currentWeek}`,
+            //     inline: true,
+            // });
 
             const adminChan = client.channels.cache.find(channel => channel.id === process.env.ADMIN_CHAN_ID);
-            const tradesChan = client.channels.cache.find(channel => channel.id === process.env.TRADES_ID);
-            const response = await adminChan.send({ 
-                embeds: [FATrade],
-                components: [row],
+            await adminChan.send({ 
+                embeds: [FATrade]
             });
 
             await interaction.reply(`FA trade requested for ${user}`);
 
-            const collectorFilter = i => i.user.id === interaction.user.id;
-            const confirmation = await response.awaitMessageComponent({ filter: collectorFilter });
-
-            if (confirmation.customId === 'approve') {
-                await tradesChan.send({
-                    content: `Trade approved for: ${user}.`,
-                    embeds: [FATradeApproved],
-                });
-                axios.post(`https://sheetdb.io/api/v1/bhsilqd4lqdy7?sheet=botData`, {
-                    data: {
-                        id: 'INCREMENT',
-                        user1: `${user.username}`,
-                        user2: 'none',
-                        type: `${typeOfTrade}`,
-                        trading: `${trading}`,
-                        for: `${tradingFor}`,
-                        currentWeek: `${currentWeek}`,
-                    }
-                });
-            }
-            else if (confirmation.customId === 'deny') {
-                await tradesChan.send({
-                    content: `Trade denied for: ${user}.`,
-                    embeds: [FATradeDenied],
-                });
-            }
+            axios.post(`https://sheetdb.io/api/v1/bhsilqd4lqdy7?sheet=botData`, {
+                data: {
+                    id: 'INCREMENT',
+                    user1: `${user.username}`,
+                    user2: 'none',
+                    type: `${typeOfTrade}`,
+                    trading: `${trading}`,
+                    for: `${tradingFor}`,
+                    currentWeek: `${currentWeek}`,
+                }
+            });
 
         }
         else {
@@ -134,7 +89,7 @@ module.exports = {
             otherUser = client.users.cache.get(`${otherPlayer}`);
 
             const P2PTrade = new EmbedBuilder()
-            .setTitle('P2P Trade')
+            .setTitle(`P2P Trade - #${tradeId}`)
             .setDescription(`${user.username} - ${otherUser.username}`)
             .setColor('Yellow')
             .addFields({
@@ -153,96 +108,44 @@ module.exports = {
                 inline: true,
             });
 
-            const P2PTradeApproved = new EmbedBuilder()
-            .setTitle('P2P Trade Approved')
-            .setDescription(`${user.username} - ${otherUser.username}`)
-            .setColor('Green')
-            .addFields({
-                name: 'Trading',
-                value: `${trading}`,
-                inline: true,
-            })
-            .addFields({
-                name: 'For',
-                value: `${tradingFor}`,
-                inline: true,
-            })
-            .addFields({
-                name: 'Week',
-                value: `${currentWeek}`,
-                inline: true,
-            });
-
-            const P2PTradeDenied = new EmbedBuilder()
-            .setTitle('P2P Trade Denied')
-            .setDescription(`${user.username} - ${otherUser.username}`)
-            .setColor('Red')
-            .addFields({
-                name: 'Trading',
-                value: `${trading}`,
-                inline: true,
-            })
-            .addFields({
-                name: 'For',
-                value: `${tradingFor}`,
-                inline: true,
-            })
-            .addFields({
-                name: 'Week',
-                value: `${currentWeek}`,
-                inline: true,
-            });
-
-            const approve = new ButtonBuilder()
-                .setCustomId('approve')
-                .setLabel('Approve')
-                .setStyle(ButtonStyle.Success);
-    
-            const deny = new ButtonBuilder()
-                .setCustomId('deny')
-                .setLabel('Deny')
-                .setStyle(ButtonStyle.Danger);
-
-            const row = new ActionRowBuilder()
-                .addComponents(approve, deny);
+            // const P2PTradeDenied = new EmbedBuilder()
+            // .setTitle('P2P Trade Denied')
+            // .setDescription(`${user.username} - ${otherUser.username}`)
+            // .setColor('Red')
+            // .addFields({
+            //     name: 'Trading',
+            //     value: `${trading}`,
+            //     inline: true,
+            // })
+            // .addFields({
+            //     name: 'For',
+            //     value: `${tradingFor}`,
+            //     inline: true,
+            // })
+            // .addFields({
+            //     name: 'Week',
+            //     value: `${currentWeek}`,
+            //     inline: true,
+            // });
 
             const adminChan = client.channels.cache.find(channel => channel.id === process.env.ADMIN_CHAN_ID);
-            const tradesChan = client.channels.cache.find(channel => channel.id === process.env.TRADES_ID);
-            const response = await adminChan.send({ 
-                embeds: [P2PTrade],
-                components: [row],
+            await adminChan.send({ 
+                embeds: [P2PTrade]
             });
 
             await interaction.reply(`P2P Trade between ${user} and <@${otherPlayer}> requested`);
 
-            const collectorFilter = i => i.user.id === interaction.user.id;
-            const confirmation = await response.awaitMessageComponent({ filter: collectorFilter });
-
-            if (confirmation.customId === 'approve') {
-
-                await tradesChan.send({
-                    content: `Trade between ${user} and <@${otherPlayer}> approved`,
-                    embeds: [P2PTradeApproved],
-                });
-                axios.post(`https://sheetdb.io/api/v1/bhsilqd4lqdy7`, {
-                    data: {
-                        id: 'INCREMENT',
-                        user1: `${user.username}`,
-                        user2: `${otherUser.username}`,
-                        type: `${typeOfTrade}`,
-                        trading: `${trading}`,
-                        for: `${tradingFor}`,
-                        currentWeek: `${currentWeek}`,
-                    }
-                });
-            }
-            else if (confirmation.customId === 'deny') {
-                await tradesChan.send({
-                    content: `Trade between ${user} and <@${otherPlayer}> denied`,
-                    embeds: [P2PTradeDenied],
-                });
-            }
-
+            axios.post(`https://sheetdb.io/api/v1/bhsilqd4lqdy7?sheet=botData`, {
+                data: {
+                    id: 'INCREMENT',
+                    user1: `${user.username}`,
+                    user2: `${otherUser.username}`,
+                    type: `${typeOfTrade}`,
+                    trading: `${trading}`,
+                    for: `${tradingFor}`,
+                    currentWeek: `${currentWeek}`,
+                }
+            });
         }
 
     },

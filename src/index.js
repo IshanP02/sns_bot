@@ -19,7 +19,7 @@ client.on('ready', (c) => {
     console.log(`${c.user.tag} is online.`);
 
     client.user.setActivity({
-        name: 'some idiots draft Pokemon',
+        name: 'ZachMcD week 2 content',
         type: ActivityType.Watching,
     });
 });
