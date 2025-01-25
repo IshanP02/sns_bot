@@ -31,7 +31,6 @@ async function importPokemon() {
         for (const line of lines) {
             let [name, gen, color, type, previousLetter, currentLetter, nextLetter, tier] = line.split(',');
 
-            // Capitalize the first letter of the Pokémon name
             name = capitalizeFirstLetter(name);
 
             await connection.query(query, [name, gen, color, type, previousLetter, currentLetter, nextLetter, tier]);
