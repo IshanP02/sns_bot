@@ -6,7 +6,7 @@ module.exports = {
 
     callback: async (client, interaction) => {
 
-        //if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) return interaction.reply({ content: 'You can\'t do that', ephemeral: true });
+        if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) return interaction.reply({ content: 'You can\'t do that', ephemeral: true });
 
         const replayLink = interaction.options.get('replay-link').value;
         var victor = interaction.options.get('victor').value;

@@ -6,7 +6,7 @@ module.exports = {
 
     callback: async (client, interaction) => {
 
-        //if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) return interaction.reply({ content: 'You can\'t do that', ephemeral: true });
+        if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) return interaction.reply({ content: 'You can\'t do that', ephemeral: true });
 
         var otherPlayer = interaction.options.get('other-player')?.value || "";
         const trading = interaction.options.get('trading').value;

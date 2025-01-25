@@ -2,6 +2,9 @@ require('dotenv').config();
 const { Client, IntentsBitField, ActivityType } = require('discord.js');
 const eventHandler = require('./handlers/eventHandler');
 
+require('./database/db');
+require('./readTxtFile/readPokemonS10')
+
 const client = new Client({
     intents: [
         IntentsBitField.Flags.Guilds,
@@ -19,7 +22,7 @@ client.on('ready', (c) => {
     console.log(`${c.user.tag} is online.`);
 
     client.user.setActivity({
-        name: 'ZachMcD week 2 content',
-        type: ActivityType.Watching,
+        name: 'WHEN IS DRAFT???',
+        type: ActivityType.Listening,
     });
 });
