@@ -107,13 +107,15 @@ module.exports = {
             }
         }
 
-        const [prevId] = await dbconnection.query(`SELECT * FROM pick WHERE id = (SELECT MAX(id) FROM pick)`);
-        const block = prevId[0].nextBlock;
-        const prevMon = prevId[0].pokemon;
-        const [prevMonData] = await dbconnection.query(
-            `SELECT * FROM pokemon WHERE name = ?`,
-            [prevMon]
-        );
+        if (currentPick != 1) {
+            const [prevId] = await dbconnection.query(`SELECT * FROM pick WHERE id = (SELECT MAX(id) FROM pick)`);
+            const block = prevId[0].nextBlock;
+            const prevMon = prevId[0].pokemon;
+            const [prevMonData] = await dbconnection.query(
+                `SELECT * FROM pokemon WHERE name = ?`,
+                [prevMon]
+            );
+        }
 
         if (pokemon == 'skip') {
             draftChan.send ({
@@ -164,6 +166,13 @@ module.exports = {
             }
         }
         else {
+            const [prevId] = await dbconnection.query(`SELECT * FROM pick WHERE id = (SELECT MAX(id) FROM pick)`);
+            const block = prevId[0].nextBlock;
+            const prevMon = prevId[0].pokemon;
+            const [prevMonData] = await dbconnection.query(
+                `SELECT * FROM pokemon WHERE name = ?`,
+                [prevMon]
+            );
             if (block == 'type') {
                 if (mon[0].type == prevMonData[0].type) {
                     return interaction.reply({
