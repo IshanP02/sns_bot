@@ -8,24 +8,58 @@ module.exports = {
 
         var id = interaction.options.get('id').value;
 
-        var rows = await axios.get(`https://sheetdb.io/api/v1/bhsilqd4lqdy7?sheet=botData`);
-        var rowData = rows.data;
+        const [tradeData] = await dbconnection.query(
+            `SELECT * FROM trade WHERE id = ?`, 
+            [id]
+        );
 
-        var tradeData = rowData.find(row => row.id == id);
+        if (tradeData.length === 0) {
+            return interaction.reply({ content: 'Trade not found.', ephemeral: true });
+        }
 
-        var type = tradeData.type;
-        var user1 = tradeData.user1;
-        var trading = tradeData.trading;
-        var tradingFor = tradeData.for;
-        var currentWeek = tradeData.currentWeek;
+        const trade = tradeData[0];
+        const { type, user, otherUser, trading, tradingFor, week } = trade;
 
         var tradesChan = client.channels.cache.find(channel => channel.id === process.env.TRADES_ID);
 
+        async function swapPokemon(userId, oldPokemon, newPokemon) {
+            const [teamData] = await dbconnection.query(
+                `SELECT * FROM team WHERE user = ?`,
+                [userId]
+            );
+
+            if (teamData.length === 0) return false;
+
+            let team = teamData[0];
+            let updateFields = [];
+
+            for (let key of Object.keys(team)) {
+                if (team[key] === oldPokemon) {
+                    updateFields.push({ key, value: newPokemon });
+                }
+            }
+
+            if (updateFields.length === 0) return false;
+
+            await dbconnection.query(
+                `UPDATE team SET ${updateFields.join(', ')} WHERE user = ?`,
+                [userId]
+            );
+
+            return true;
+        }
+
         if (type == 'FA') {
+
+            const success = await swapPokemon(user, trading, tradingFor);
+
+            if (!success) {
+                return interaction.reply({ content: 'Error: Pokémon not found in user’s team.', ephemeral: true });
+            }
 
             var FATradeApproved = new EmbedBuilder()
             .setTitle('FA Trade Approved')
-            .setDescription(`${user1}`)
+            .setDescription(`${user}`)
             .setColor('Green')
             .addFields({
                 name: 'Trading',
@@ -39,7 +73,7 @@ module.exports = {
             })
             .addFields({
                 name: 'Week',
-                value: `${currentWeek}`,
+                value: `${week}`,
                 inline: true,
             });
 
@@ -47,16 +81,19 @@ module.exports = {
                 embeds: [FATradeApproved]
             });
 
-            await interaction.reply('Trade approved.');
-
         }
         else {
 
-            const user2 = tradeData.user2;
+            const userSuccess = await swapPokemon(user, trading, tradingFor);
+            const otherUserSuccess = await swapPokemon(otherUser, tradingFor, trading);
+
+            if (!userSuccess || !otherUserSuccess) {
+                return interaction.reply({ content: 'Error: One or both Pokémon not found in teams.', ephemeral: true });
+            }
 
             var P2PTradeApproved = new EmbedBuilder()
             .setTitle('P2P Trade Approved')
-            .setDescription(`${user1} - ${user2}`)
+            .setDescription(`${user} - ${otherUser}`)
             .setColor('Green')
             .addFields({
                 name: 'Trading',
@@ -70,7 +107,7 @@ module.exports = {
             })
             .addFields({
                 name: 'Week',
-                value: `${currentWeek}`,
+                value: `${week}`,
                 inline: true,
             });
 
@@ -78,9 +115,14 @@ module.exports = {
                 embeds: [P2PTradeApproved]
             });
 
-            await interaction.reply('Trade approved.');
-
         }
+
+        await dbconnection.promise().query(
+            `UPDATE trade SET status = 'approved' WHERE id = ?`,
+            [id]
+        );
+
+        await interaction.reply('Trade approved.');
 
     },
     name: 'approve-trade',

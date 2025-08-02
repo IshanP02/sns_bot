@@ -8,16 +8,17 @@ module.exports = {
 
         var id = interaction.options.get('id').value;
 
-        var rows = await axios.get(`https://sheetdb.io/api/v1/bhsilqd4lqdy7?sheet=botData`);
-        var rowData = rows.data;
+        const [tradeData] = await dbconnection.promise().query(
+            `SELECT * FROM trade WHERE id = ?`, 
+            [id]
+        );
 
-        var tradeData = rowData.find(row => row.id == id);
+        if (tradeData.length === 0) {
+            return interaction.reply({ content: 'Trade not found.', ephemeral: true });
+        }
 
-        var type = tradeData.type;
-        var user1 = tradeData.user1;
-        var trading = tradeData.trading;
-        var tradingFor = tradeData.for;
-        var currentWeek = tradeData.currentWeek;
+        const trade = tradeData[0];
+        const { type, user, otherUser, trading, tradingFor, week } = trade;
 
         var tradesChan = client.channels.cache.find(channel => channel.id === process.env.TRADES_ID);
 
@@ -25,7 +26,7 @@ module.exports = {
 
             var FATradeDenied = new EmbedBuilder()
             .setTitle('FA Trade Denied')
-            .setDescription(`${user1}`)
+            .setDescription(`${user}`)
             .setColor('Red')
             .addFields({
                 name: 'Trading',
@@ -39,15 +40,13 @@ module.exports = {
             })
             .addFields({
                 name: 'Week',
-                value: `${currentWeek}`,
+                value: `${week}`,
                 inline: true,
             });
 
             await tradesChan.send({
                 embeds: [FATradeDenied]
             });
-
-            await interaction.reply('Trade denied.');
 
         }
         else {
@@ -56,7 +55,7 @@ module.exports = {
 
             var P2PTradeDenied = new EmbedBuilder()
             .setTitle('P2P Trade Denied')
-            .setDescription(`${user1} - ${user2}`)
+            .setDescription(`${user} - ${otherUser}`)
             .setColor('Red')
             .addFields({
                 name: 'Trading',
@@ -70,7 +69,7 @@ module.exports = {
             })
             .addFields({
                 name: 'Week',
-                value: `${currentWeek}`,
+                value: `${week}`,
                 inline: true,
             });
 
@@ -78,9 +77,14 @@ module.exports = {
                 embeds: [P2PTradeDenied]
             });
 
-            await interaction.reply('Trade denied.');
-
         }
+
+        await interaction.reply('Trade denied.');
+
+        await dbconnection.promise().query(
+            `UPDATE trade SET status = 'denied' WHERE id = ?`,
+            [id]
+        );
 
     },
     name: 'deny-trade',

@@ -1,85 +1,52 @@
 const axios = require('axios');
 require('dotenv').config();
 const { ApplicationCommandOptionType, EmbedBuilder, ActionRowBuilder, ButtonBuilder, ButtonStyle, PermissionsBitField } = require('discord.js');
+const dbconnection = require('../../database/dbconnection');
 
 module.exports = {
 
     callback: async (client, interaction) => {
 
-        if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) return interaction.reply({ content: 'You can\'t do that', ephemeral: true });
+        //if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) return interaction.reply({ content: 'You can\'t do that', ephemeral: true });
 
         var otherPlayer = interaction.options.get('other-player')?.value || "";
         const trading = interaction.options.get('trading').value;
         const tradingFor = interaction.options.get('trading-for').value;
         const currentWeek = interaction.options.get('current-week').value;
+        const bid = interaction.options.get('bid')?.value || 0;
         const user = await client.users.fetch(interaction.member.id);
 
-        const rows = await axios.get(`https://sheetdb.io/api/v1/bhsilqd4lqdy7?sheet=botData`);
-        const rowData = rows.data;
-
-        var tradeId = Math.max.apply(null, rowData.map(item => item.id)) + 1;
-
-        if ( otherPlayer == "" ) {
+        if ( otherPlayer == "" || !otherPlayer ) {
 
             const typeOfTrade = "FA";
 
-            const FATrade = new EmbedBuilder()
-            .setTitle(`FA Trade - #${tradeId}`)
-            .setDescription(`${user.username}`)
-            .setColor('Yellow')
-            .addFields({
-                name: 'Trading',
-                value: `${trading}`,
-                inline: true,
-            })
-            .addFields({
-                name: 'For',
-                value: `${tradingFor}`,
-                inline: true,
-            })
-            .addFields({
-                name: 'Week',
-                value: `${currentWeek}`,
-                inline: true,
-            });
+            const [userTeam] = await dbconnection.query(
+                `SELECT * FROM team WHERE user = ? AND (a1 = ? OR b1 = ? OR b2 = ? OR c1 = ? OR c2 = ? OR d1 = ? OR e1 = ? OR free1 = ? OR free2 = ? OR free3 = ?)`,
+                [user, trading, trading, trading, trading, trading, trading, trading, trading, trading, trading]
+            );
 
-            // const FATradeDenied = new EmbedBuilder()
-            // .setTitle('FA Trade Denied')
-            // .setDescription(`${user.username}`)
-            // .setColor('Red')
-            // .addFields({
-            //     name: 'Trading',
-            //     value: `${trading}`,
-            //     inline: true,
-            // })
-            // .addFields({
-            //     name: 'For',
-            //     value: `${tradingFor}`,
-            //     inline: true,
-            // })
-            // .addFields({
-            //     name: 'Week',
-            //     value: `${currentWeek}`,
-            //     inline: true,
-            // });
+            if (userTeam.length === 0) {
+                return interaction.reply({ content: 'You do not own the Pokemon you are trying to trade.', ephemeral: true });
+            }
 
-            const adminChan = client.channels.cache.find(channel => channel.id === process.env.ADMIN_CHAN_ID);
-            await adminChan.send({ 
-                embeds: [FATrade]
-            });
+            const [conflictingTrade] = await dbconnection.query(
+                `SELECT * FROM team WHERE a1 = ? OR b1 = ? OR b2 = ? OR c1 = ? OR c2 = ? OR d1 = ? OR e1 = ? OR free1 = ? OR free2 = ? OR free3 = ?`,
+                [tradingFor, tradingFor, tradingFor, tradingFor, tradingFor, tradingFor, tradingFor, tradingFor, tradingFor, tradingFor]
+            );
 
-            await interaction.reply(`FA trade requested for ${user}`);
+            if (conflictingTrade.length > 0) {
+                return interaction.reply({ content: 'The Pokemon you are trading for is already owned by another team.', ephemeral: true });
+            }
 
-            axios.post(`https://sheetdb.io/api/v1/bhsilqd4lqdy7?sheet=botData`, {
-                data: {
-                    id: 'INCREMENT',
-                    user1: `${user.username}`,
-                    user2: 'none',
-                    type: `${typeOfTrade}`,
-                    trading: `${trading}`,
-                    for: `${tradingFor}`,
-                    currentWeek: `${currentWeek}`,
-                }
+            await dbconnection.query(
+                `INSERT INTO trade (user, otherUser, trading, tradingFor, week, status, type, bid) 
+                VALUES (?, NULL, ?, ?, ?, 'pending', 'FA', ?)`,
+                [user, trading, tradingFor, currentWeek, bid]
+            );
+
+            return interaction.reply({
+                content: `FA trade requested for ${user}`,
+                ephemeral: true
             });
 
         }
@@ -88,64 +55,32 @@ module.exports = {
 
             otherUser = client.users.cache.get(`${otherPlayer}`);
 
-            const P2PTrade = new EmbedBuilder()
-            .setTitle(`P2P Trade - #${tradeId}`)
-            .setDescription(`${user.username} - ${otherUser.username}`)
-            .setColor('Yellow')
-            .addFields({
-                name: 'Trading',
-                value: `${trading}`,
-                inline: true,
-            })
-            .addFields({
-                name: 'For',
-                value: `${tradingFor}`,
-                inline: true,
-            })
-            .addFields({
-                name: 'Week',
-                value: `${currentWeek}`,
-                inline: true,
-            });
+            const [userTeam] = await dbconnection.query(
+                `SELECT * FROM team WHERE user = ? AND (a1 = ? OR b1 = ? OR b2 = ? OR c1 = ? OR c2 = ? OR d1 = ? OR e1 = ? OR free1 = ? OR free2 = ? OR free3 = ?)`,
+                [user, trading, trading, trading, trading, trading, trading, trading, trading, trading, trading]
+            );
 
-            // const P2PTradeDenied = new EmbedBuilder()
-            // .setTitle('P2P Trade Denied')
-            // .setDescription(`${user.username} - ${otherUser.username}`)
-            // .setColor('Red')
-            // .addFields({
-            //     name: 'Trading',
-            //     value: `${trading}`,
-            //     inline: true,
-            // })
-            // .addFields({
-            //     name: 'For',
-            //     value: `${tradingFor}`,
-            //     inline: true,
-            // })
-            // .addFields({
-            //     name: 'Week',
-            //     value: `${currentWeek}`,
-            //     inline: true,
-            // });
+            if (userTeam.length === 0) {
+                return interaction.reply({ content: 'You do not own the Pokemon you are trying to trade.', ephemeral: true });
+            }
 
-            const adminChan = client.channels.cache.find(channel => channel.id === process.env.ADMIN_CHAN_ID);
-            await adminChan.send({ 
-                embeds: [P2PTrade]
-            });
+            const [otherUserTeam] = await dbconnection.query(
+                `SELECT * FROM team WHERE user = ? AND (a1 = ? OR b1 = ? OR b2 = ? OR c1 = ? OR c2 = ? OR d1 = ? OR e1 = ? OR free1 = ? OR free2 = ? OR free3 = ?)`,
+                [otherUser, tradingFor, tradingFor, tradingFor, tradingFor, tradingFor, tradingFor, tradingFor, tradingFor, tradingFor, tradingFor]
+            );
+
+            if (otherUserTeam.length === 0) {
+                return interaction.reply({ content: 'The other user does not own the Pokemon you are trying to trade for.', ephemeral: true });
+            }
+
+            await dbconnection.query(
+                `INSERT INTO trade (user, otherUser, trading, tradingFor, week, status, type, bid) 
+                VALUES (?, ?, ?, ?, ?, 'pending', 'P2P', NULL)`,
+                [user, otherUser, trading, tradingFor, currentWeek]
+            );
 
             await interaction.reply(`P2P Trade between ${user} and <@${otherPlayer}> requested`);
 
-            axios.post(`https://sheetdb.io/api/v1/bhsilqd4lqdy7?sheet=botData`, {
-                data: {
-                    id: 'INCREMENT',
-                    user1: `${user.username}`,
-                    user2: `${otherUser.username}`,
-                    type: `${typeOfTrade}`,
-                    trading: `${trading}`,
-                    for: `${tradingFor}`,
-                    currentWeek: `${currentWeek}`,
-                }
-            });
         }
 
     },
@@ -175,6 +110,12 @@ module.exports = {
             name: 'other-player',
             description: '@ of other player involved in trade',
             type: ApplicationCommandOptionType.Mentionable,
+            required: false,
+        },
+        {
+            name: 'bid',
+            description: 'the bid for the trade',
+            type: ApplicationCommandOptionType.Integer,
             required: false,
         },
     ],

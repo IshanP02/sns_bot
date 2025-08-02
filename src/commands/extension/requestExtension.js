@@ -6,7 +6,7 @@ module.exports = {
 
     callback: async (client, interaction) => {
 
-        if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) return interaction.reply({ content: 'You can\'t do that', ephemeral: true });
+        //if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) return interaction.reply({ content: 'You can\'t do that', ephemeral: true });
 
         const week = interaction.options.get('week').value;
         const reason = interaction.options.get('reason').value;

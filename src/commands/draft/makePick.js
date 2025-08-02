@@ -53,7 +53,7 @@ module.exports = {
 
     callback: async (client, interaction) => {
 
-        //if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) return interaction.reply({ content: 'You can\'t do that', ephemeral: true });
+        if (!interaction.member.permissions.has(PermissionsBitField.Flags.Administrator)) return interaction.reply({ content: 'Draft not currently in progress...', ephemeral: true });
 
         const draftChan = client.channels.cache.find(channel => channel.id === process.env.DRAFT_CHAN);
 
@@ -71,8 +71,12 @@ module.exports = {
         else {
             currentPick = currentPick + 1;
         }
+        //SCUFFED FIX FOR S10 MESSUP, DELETE AFTER
+        if (currentPick > 109) {
+            currentPick = currentPick - 1;
+        }
 
-        //fear, naps, scott, rey, tahlia, will, tony, ishan, kyle, zmc, meli, manatsu, sum, wheeler, saint, shaq, curtis, chris, strict, joey, lily, super, emma, harry, rob, owen, ghant, phoenix
+        //Fear, Naps, Scott, Rey, Tahlia, Will, Tony, Ishan, Kyle, Zach, Meli, Manatsu, Sum, Wheeler, Saint, Shaq, Curtis, Chris, Strict, Joey, Lily, Super, Emma, Harry, Rob, Owen, Ghant, Phoenix
         const playersById = [ `358030932856406019`/**fear*/, `372762243093495809`/**naps*/, `278667274519314435`/**scott*/, `685992148835106875`/**rey*/, `212098633317875713`/**tahlia*/, `201845831215611905`/**will*/, `188019219961479168`/**tony*/, 
             `125395426948939776`/**ishan*/, `424351418653212682`/**kyle*/, `87804552895533056`/**zmc*/, `186958826145054721`/**meli*/, `226879501697548288`/**manatsu*/, `309141015594532864`/**sum*/, `114450973987962880`/**wheeler*/, 
             `380494414230978589`/**saint*/, `227898618110148611`/**shaq*/, `245253160078147586`/**curtis*/, `282505061513560064`/**chris*/, `516456049105174548`/**strict*/, `185136347508506624`/**joey*/, `186820843894996992`/**lily*/,
@@ -106,10 +110,11 @@ module.exports = {
                 currentPlayerId = playersById[currentPickInRound - 1];
             }
         }
+        var block;
 
         if (currentPick != 1) {
             const [prevId] = await dbconnection.query(`SELECT * FROM pick WHERE id = (SELECT MAX(id) FROM pick)`);
-            const block = prevId[0].nextBlock;
+            block = prevId[0].nextBlock;
             const prevMon = prevId[0].pokemon;
             const [prevMonData] = await dbconnection.query(
                 `SELECT * FROM pokemon WHERE name = ?`,
@@ -250,6 +255,224 @@ module.exports = {
             `INSERT INTO pick (pokemon, user, nextBlock) VALUES (?, ?, ?)`,
             [pokemon, currentPlayerId, nextBlock]
         );
+
+        const [team] = await dbconnection.query(
+            `SELECT * FROM team WHERE user = ?`,
+            [currentPlayerId]
+        );
+
+        if (mon[0].tier.trim() == "a") {
+            if (team[0].a1 == null) {
+                await dbconnection.query(
+                    `UPDATE team SET a1 = ? WHERE user = ?`,
+                    [pokemon, currentPlayerId]
+                );
+            }
+            else if (team[0].points >= 12) {
+                if (team[0].free1 == null) {
+                    let points = team[0].points - 12;
+                    if (points < 4) {
+                        return interaction.reply(`Invalid pick, a tier slots are full, and you will not have enough points for 3 free picks if you pick this.`);
+                    }
+                    await dbconnection.query(
+                        `UPDATE team SET points = ?, free1 = ? WHERE user = ?`,
+                        [points, pokemon, currentPlayerId]
+                    );
+                }
+                else if (team[0].free2 == null) {
+                    let points = team[0].points - 12;
+                    if (points < 2) {
+                        return interaction.reply(`Invalid pick, a tier slots are full, and you will not have enough points for 3 free picks if you pick this.`);
+                    }
+                    await dbconnection.query(
+                        `UPDATE team SET points = ?, free2 = ? WHERE user = ?`,
+                        [points, pokemon, currentPlayerId]
+                    );
+                }
+                else if (team[0].free3 == null) {
+                    let points = team[0].points - 12;
+                    await dbconnection.query(
+                        `UPDATE team SET points = ?, free3 = ? WHERE user = ?`,
+                        [points, pokemon, currentPlayerId]
+                    );
+                }
+                else {
+                    return interaction.reply(`Invalid pick, a tier slots are full, and you do not have enough free points OR slots.`);
+                }
+            }
+        }
+        else if (mon[0].tier.trim() == "b") {
+            if (team[0].b1 == null) {
+                await dbconnection.query(
+                    `UPDATE team SET b1 = ? WHERE user = ?`,
+                    [pokemon, currentPlayerId]
+                );
+            }
+            else if (team[0].b2 == null) {
+                await dbconnection.query(
+                    `UPDATE team SET b2 = ? WHERE user = ?`,
+                    [pokemon, currentPlayerId]
+                );
+            }
+            else if (team[0].points >= 8) {
+                if (team[0].free1 == null) {
+                    let points = team[0].points - 8;
+                    if (points < 4) {
+                        return interaction.reply(`Invalid pick, b tier slots are full, and you will not have enough points for 3 free picks if you pick this.`);
+                    }
+                    await dbconnection.query(
+                        `UPDATE team SET points = ?, free1 = ? WHERE user = ?`,
+                        [points, pokemon, currentPlayerId]
+                    );
+                }
+                else if (team[0].free2 == null) {
+                    let points = team[0].points - 8;
+                    if (points < 2) {
+                        return interaction.reply(`Invalid pick, b tier slots are full, and you will not have enough points for 3 free picks if you pick this.`);
+                    }
+                    await dbconnection.query(
+                        `UPDATE team SET points = ?, free2 = ? WHERE user = ?`,
+                        [points, pokemon, currentPlayerId]
+                    );
+                }
+                else if (team[0].free3 == null) {
+                    let points = team[0].points - 8;
+                    await dbconnection.query(
+                        `UPDATE team SET points = ?, free3 = ? WHERE user = ?`,
+                        [points, pokemon, currentPlayerId]
+                    );
+                }
+                else {
+                    return interaction.reply(`Invalid pick, b tier slots are full, and you do not have enough free points OR slots.`);
+                }
+            }
+        }
+        else if (mon[0].tier.trim() == "c") {
+            if (team[0].c1 == null) {
+                await dbconnection.query(
+                    `UPDATE team SET c1 = ? WHERE user = ?`,
+                    [pokemon, currentPlayerId]
+                );
+            }
+            else if (team[0].c2 == null) {
+                await dbconnection.query(
+                    `UPDATE team SET c2 = ? WHERE user = ?`,
+                    [pokemon, currentPlayerId]
+                );
+            }
+            else if (team[0].points >= 5) {
+                if (team[0].free1 == null) {
+                    let points = team[0].points - 5;
+                    if (points < 4) {
+                        return interaction.reply(`Invalid pick, c tier slots are full, and you will not have enough points for 3 free picks if you pick this.`);
+                    }
+                    await dbconnection.query(
+                        `UPDATE team SET points = ?, free1 = ? WHERE user = ?`,
+                        [points, pokemon, currentPlayerId]
+                    );
+                }
+                else if (team[0].free2 == null) {
+                    let points = team[0].points - 5;
+                    if (points < 2) {
+                        return interaction.reply(`Invalid pick, c tier slots are full, and you will not have enough points for 3 free picks if you pick this.`);
+                    }
+                    await dbconnection.query(
+                        `UPDATE team SET points = ?, free2 = ? WHERE user = ?`,
+                        [points, pokemon, currentPlayerId]
+                    );
+                }
+                else if (team[0].free3 == null) {
+                    let points = team[0].points - 5;
+                    await dbconnection.query(
+                        `UPDATE team SET points = ?, free3 = ? WHERE user = ?`,
+                        [points, pokemon, currentPlayerId]
+                    );
+                }
+                else {
+                    return interaction.reply(`Invalid pick, c tier slots are full, and you do not have enough free points OR slots.`);
+                }
+            }
+        }
+        else if (mon[0].tier.trim() == "d") {
+            if (team[0].d1 == null) {
+                await dbconnection.query(
+                    `UPDATE team SET d1 = ? WHERE user = ?`,
+                    [pokemon, currentPlayerId]
+                );
+            }
+            else if (team[0].points >= 3) {
+                if (team[0].free1 == null) {
+                    let points = team[0].points - 3;
+                    if (points < 4) {
+                        return interaction.reply(`Invalid pick, d tier slots are full, and you will not have enough points for 3 free picks if you pick this.`);
+                    }
+                    await dbconnection.query(
+                        `UPDATE team SET points = ?, free1 = ? WHERE user = ?`,
+                        [points, pokemon, currentPlayerId]
+                    );
+                }
+                else if (team[0].free2 == null) {
+                    let points = team[0].points - 3;
+                    if (points < 2) {
+                        return interaction.reply(`Invalid pick, d tier slots are full, and you will not have enough points for 3 free picks if you pick this.`);
+                    }
+                    await dbconnection.query(
+                        `UPDATE team SET points = ?, free2 = ? WHERE user = ?`,
+                        [points, pokemon, currentPlayerId]
+                    );
+                }
+                else if (team[0].free3 == null) {
+                    let points = team[0].points - 3;
+                    await dbconnection.query(
+                        `UPDATE team SET points = ?, free3 = ? WHERE user = ?`,
+                        [points, pokemon, currentPlayerId]
+                    );
+                }
+                else {
+                    return interaction.reply(`Invalid pick, d tier slots are full, and you do not have enough free points OR slots.`);
+                }
+            }
+        }
+        else if (mon[0].tier.trim() == "e") {
+            if (team[0].e1 == null) {
+                await dbconnection.query(
+                    `UPDATE team SET e1 = ? WHERE user = ?`,
+                    [pokemon, currentPlayerId]
+                );
+            }
+            else if (team[0].points >= 2) {
+                if (team[0].free1 == null) {
+                    let points = team[0].points - 2;
+                    if (points < 4) {
+                        return interaction.reply(`Invalid pick, e tier slots are full, and you will not have enough points for 3 free picks if you pick this.`);
+                    }
+                    await dbconnection.query(
+                        `UPDATE team SET points = ?, free1 = ? WHERE user = ?`,
+                        [points, pokemon, currentPlayerId]
+                    );
+                }
+                else if (team[0].free2 == null) {
+                    let points = team[0].points - 2;
+                    if (points < 2) {
+                        return interaction.reply(`Invalid pick, e tier slots are full, and you will not have enough points for 3 free picks if you pick this.`);
+                    }
+                    await dbconnection.query(
+                        `UPDATE team SET points = ?, free2 = ? WHERE user = ?`,
+                        [points, pokemon, currentPlayerId]
+                    );
+                }
+                else if (team[0].free3 == null) {
+                    let points = team[0].points - 2;
+                    await dbconnection.query(
+                        `UPDATE team SET points = ?, free3 = ? WHERE user = ?`,
+                        [points, pokemon, currentPlayerId]
+                    );
+                }
+                else {
+                    return interaction.reply(`Invalid pick, e tier slots are full, and you do not have enough free points OR slots.`);
+                }
+            }
+        }
 
         // await startPickTimeout(currentPick, draftChan, nextPlayerId);
     
